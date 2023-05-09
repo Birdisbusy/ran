@@ -17,9 +17,11 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/rancher-sandbox/rancher-desktop/src/go/rdctl/pkg/reg"
 	"github.com/spf13/cobra"
+	"github.com/rancher-sandbox/rancher-desktop/src/go/rdctl/pkg/options/generated"
 	"strings"
 )
 
