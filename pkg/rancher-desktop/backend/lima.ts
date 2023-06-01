@@ -1870,7 +1870,14 @@ export default class LimaBackend extends events.EventEmitter implements VMBacken
           throw new Error('No container engine is set');
         }
         if (kubernetesVersion) {
-          await this.kubeBackend.install(config, kubernetesVersion, this.#adminAccess);
+          if (!config.kubernetes.version) {
+            const versionSetting = { kubernetes: { version: kubernetesVersion.version } };
+
+            await this.kubeBackend.install(merge(config, versionSetting), kubernetesVersion, this.#adminAccess);
+            mainEvents.emit('settings-write', versionSetting);
+          } else {
+            await this.kubeBackend.install(config, kubernetesVersion, this.#adminAccess);
+          }
         }
 
         await this.progressTracker.action('Installing Buildkit', 50, this.writeBuildkitScripts());
