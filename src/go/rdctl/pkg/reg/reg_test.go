@@ -22,13 +22,13 @@ func TestJsonToRegFormat(t *testing.T) {
 				expectedError: "unrecognized hiveType of 'bad-hive', must be 'hklm' or 'hkcu'",
 			},
 			{
-				hiveType: "bad-hive",
-				profileType: "locked",
+				hiveType:      "bad-hive",
+				profileType:   "locked",
 				expectedError: "unrecognized hiveType of 'bad-hive', must be 'hklm' or 'hkcu'",
 			},
 			{
-				hiveType: "hkcu",
-				profileType: "bad-profile",
+				hiveType:      "hkcu",
+				profileType:   "bad-profile",
 				expectedError: "unrecognized profileType of 'bad-profile', must be 'defaults' or 'locked'",
 			},
 			{
