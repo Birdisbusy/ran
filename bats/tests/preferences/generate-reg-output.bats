@@ -53,19 +53,19 @@ verify_registry_output() {
 }
 
 @test 'complains about non-json body' {
-    run rdctl list-settings --output reg,hkcu --body "ceci n'est pas quelque json"
+    run rdctl list-settings --output reg --reg-hive=hkcu --body "this is not json"
     assert_failure
     assert_output "Error: error in json: invalid character 'c' looking for beginning of value"
 }
 
 @test 'complains about --body without reg' {
-    run rdctl list-settings --output json --body "ceci n'est pas quelque json"
+    run rdctl list-settings --output json --body "this is not json"
     assert_failure
     assert_output "Error: --input and --body|-b options are only valid when '--output reg' is also specified"
 }
 
 @test 'complains about --input without reg' {
-    run rdctl list-settings --output json --input "ceci n'est pas quelque json"
+    run rdctl list-settings --output json --input "this is not json"
     assert_failure
     assert_output "Error: --input and --body|-b options are only valid when '--output reg' is also specified"
 }
