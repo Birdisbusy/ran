@@ -74,36 +74,6 @@ RD_USE_IMAGE_ALLOW_LIST=true
     assert_output --partial '[HKEY_CURRENT_USER\SOFTWARE\Policies\Rancher Desktop\locked\application]'
 }
 
-@test 'generates registry output for hklm/defaults' {
-    for option in reg reg,hklm reg,hklm,defaults reg,defaults; do
-        run rdctl list-settings --output "$option"
-        assert_success
-        assert_output --partial '[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Rancher Desktop\defaults\application]'
-    done
-}
-
-@test 'generates registry output for hklm/locked' {
-    for option in reg,hklm,locked reg,locked; do
-        run rdctl list-settings --output "$option"
-        assert_success
-        assert_output --partial '[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Rancher Desktop\locked\application]'
-    done
-}
-
-@test 'generates registry output for hkcu/defaults' {
-    for option in reg,hkcu,defaults reg,hkcu; do
-        run rdctl list-settings --output "$option"
-        assert_success
-        assert_output --partial '[HKEY_CURRENT_USER\SOFTWARE\Policies\Rancher Desktop\defaults\application]'
-    done
-}
-
-@test 'generates registry output for hkcu/locked' {
-    run rdctl list-settings --output reg,hkcu,locked
-    assert_success
-    assert_output --partial '[HKEY_CURRENT_USER\SOFTWARE\Policies\Rancher Desktop\locked\application]'
-}
-
 # The result of the `assert_output` for heredocuments looks suspicious (I see it always passing),
 # but this serves to document the expected full reg output
 @test 'generates registry output' {
