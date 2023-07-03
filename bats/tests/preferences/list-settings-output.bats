@@ -74,7 +74,7 @@ RD_USE_IMAGE_ALLOW_LIST=true
     assert_output --partial '[HKEY_CURRENT_USER\SOFTWARE\Policies\Rancher Desktop\locked\application]'
 }
 
-# The result of the `assert_output` for heredocuments looks suspicious (I see it always passing),
+# The result of the `assert_output` for here-documents looks suspicious (I see it always passing),
 # but this serves to document the expected full reg output
 @test 'generates registry output' {
     run rdctl list-settings --output reg

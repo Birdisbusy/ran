@@ -22,32 +22,32 @@ verify_registry_output() {
     assert_output --partial '"second"=dword:0'
 }
 
-@test 'generates registry output from stding' {
-    run bash -c $'echo \'{"kubernetes": {"enabled": false}, "containerEngine": { "allowedImages": {"patterns": ["abc", "ghi", "def"] } }, "WSL": { "integrations": { "first": true, "second": false } } }\' | rdctl list-settings --output reg,hkcu --input - | cat -n'
+@test 'generates registry output from stdin' {
+    run bash -c $'echo \'{"kubernetes": {"enabled": false}, "containerEngine": { "allowedImages": {"patterns": ["abc", "ghi", "def"] } }, "WSL": { "integrations": { "first": true, "second": false } } }\' | rdctl list-settings --output reg --reg-hive=hkcu --input - | cat -n'
     verify_registry_output
 }
 
 @test 'generates registry output from inline string' {
-    run rdctl list-settings --output reg,hkcu -b '{"kubernetes": {"enabled": false}, "containerEngine": { "allowedImages": {"patterns": ["abc", "ghi", "def"] } }, "WSL": { "integrations": { "first": true, "second": false } } }'
+    run rdctl list-settings --output reg --reg-hive hkcu -b '{"kubernetes": {"enabled": false}, "containerEngine": { "allowedImages": {"patterns": ["abc", "ghi", "def"] } }, "WSL": { "integrations": { "first": true, "second": false } } }'
     verify_registry_output
 }
 
 @test 'generates registry output from a file' {
     local JSONFILE="$TEMP"/rdctl-reg-output.txt
     echo '{"kubernetes": {"enabled": false}, "containerEngine": { "allowedImages": {"patterns": ["abc", "ghi", "def"] } }, "WSL": { "integrations": { "first": true, "second": false } } }' >"$JSONFILE"
-    run rdctl list-settings --output reg,hkcu --input "$JSONFILE"
+    run rdctl list-settings --output reg --reg-hive=hkcu --input "$JSONFILE"
     verify_registry_output
     rm -f "$JSONFILE"
 }
 
 @test 'complains about both --input and --body' {
-    run rdctl list-settings --output reg,hkcu --input - --body blip
+    run rdctl list-settings --output reg --reg-hive=hkcu --input - --body blip
     assert_failure
     assert_output "Error: list-settings command: --body|-b and --input options cannot both be specified"
 }
 
 @test 'complains about both --input and -b' {
-    run rdctl list-settings --output reg,hkcu --input - -b blip
+    run rdctl list-settings --output reg --reg-hive=hkcu --input - -b blip
     assert_failure
     assert_output "Error: list-settings command: --body|-b and --input options cannot both be specified"
 }
