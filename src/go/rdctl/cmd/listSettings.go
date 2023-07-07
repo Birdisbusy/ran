@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"github.com/rancher-sandbox/rancher-desktop/src/go/rdctl/pkg/reg"
 	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -28,6 +30,8 @@ var outputSettingsFlags struct {
 	RegistryHive        string
 	RegistryProfileType string
 }
+var InputFile string
+var JSONBody string
 
 const jsonFormat = "json"
 const regFormat = "reg"
@@ -48,6 +52,20 @@ rdctl list-commands --output reg --reg-hive=X --profile=Y
 where X is either "hkcu" or "hklm", depending on whether you want to update HKEY_LOCAL_MACHINE
 or HKEY_CURRENT_USER respectively (default: "hklm"),
 and Y is either "defaults" or "locked", depending on which deployment profile you want to populate (default: "defaults").
+
+You can convert any arbitrary JSON document to reg file format by specifying either
+'--body|-b STRING_CONTAINING_JSON' or
+'--input FILE_CONTAINING_JSON' to convert the supplied JSON text, rather than getting the current
+settings from the server. Any fields in the JSON that aren't recognized as Rancher Desktop settings
+will be ignore.
+You can also specify '--input -' to pipe JSON in from standard input.
+
+So something like
+
+	echo '{"kubernetes":{"enabled": false}}' | rdctl list-settings --output=reg --reg-hive=hkcu --input - > k8sOff.reg
+
+can be used to produce a registry file that will set 'kubernetes.enabled' to false in the deployment file.
+Then run 'reg import k8sOff.reg' to add that hierarchy to the Windows registry.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.NoArgs(cmd, args); err != nil {
@@ -107,7 +125,25 @@ func getListSettings() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	output, err := processRequestForUtility(doRequest("GET", versionCommand("", "settings")))
+	var output []byte
+
+	if InputFile != "" && JSONBody != "" {
+		return nil, fmt.Errorf("list-settings command: --body|-b and --input options cannot both be specified")
+	}
+	if InputFile == "" && JSONBody == "" {
+		output, err = processRequestForUtility(doRequest("GET", versionCommand("", "settings")))
+	} else {
+		if outputSettingsFlags.Format != "reg" {
+			return nil, fmt.Errorf("--input and --body|-b options are only valid when '--output reg' is also specified")
+		}
+		if JSONBody != "" {
+			output = []byte(JSONBody)
+		} else if InputFile == "-" {
+			output, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			output, err = ioutil.ReadFile(InputFile)
+		}
+	}
 	if err != nil {
 		return "", err
 	} else if outputSettingsFlags.Format == jsonFormat {
