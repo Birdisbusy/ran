@@ -28,7 +28,7 @@ capturing_logs() {
 }
 
 ########################################################################
-: "${RD_NO_MODAL_DIALOGS:=true}"
+: "${RD_NO_MODAL_DIALOGS:=false}"
 
 suppressing_modal_dialogs() {
     is_true "$RD_NO_MODAL_DIALOGS"
@@ -160,3 +160,7 @@ validate_enum RD_LOCATION system user dist npm ""
 using_npm_run_dev() {
     [ "$RD_LOCATION" = "npm" ]
 }
+
+########################################################################
+# BUG BUG BUG WORKAROUND API CALLS NEED TO SPECIFY A VERSION
+: "${RD_API_VERSION:=8}"
