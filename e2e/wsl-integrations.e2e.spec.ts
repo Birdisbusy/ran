@@ -206,7 +206,15 @@ test.describe('WSL Integrations', () => {
 
     await expect(wslPage.wslIntegrations).toHaveCount(1, { timeout: 10_000 });
     const x2 = wslPage.tabIntegrations.getByTestId('wsl-integration-list');
-    console.log(`wsl-integration-list thing is an ${ x2 }: `, x2)
+    console.log(`wsl-integration-list thing is an ${ x2 }: `, x2);
+    let x3 = x2.getByText('alpha');
+    console.log(`QQQ: alpha is a ${ typeof(x3) }`, x3);
+    const x3a = x3.getByRole('checkbox');
+    console.log(`QQQ: did we get a checkbox? type: <${ typeof x3a }>, <${ x3a }>`, x3a);
+    x3 = x2.getByText('beta');
+    console.log(`QQQ: beta is a ${ typeof(x3) }`, x3);
+    x3 = x2.getByText('gamma');
+    console.log(`QQQ: gamma is a ${ typeof(x3) }`, x3);
 
     /*
     const integrations = wslPage.wslIntegrations;
