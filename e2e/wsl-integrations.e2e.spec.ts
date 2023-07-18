@@ -14,7 +14,7 @@ import { createDefaultSettings, startRancherDesktop, teardown } from './utils/Te
 
 import { spawnFile } from '@pkg/utils/childProcess';
 
-import type { ElectronApplication, Page } from '@playwright/test';
+import type { ElectronApplication, Locator, Page } from '@playwright/test';
 
 test.describe('WSL Integrations', () => {
   // test.skip(true, 'TODO: https://github.com/rancher-sandbox/rancher-desktop/issues/2881');
@@ -205,6 +205,9 @@ test.describe('WSL Integrations', () => {
     await expect(wslPage.wslIntegrations).toBeVisible();
 
     await expect(wslPage.wslIntegrations).toHaveCount(1, { timeout: 10_000 });
+    const x2 = wslPage.tabIntegrations.getByTestId('wsl-integration-list');
+    console.log(`wsl-integration-list thing is an ${ x2 }: `, x2)
+
     /*
     const integrations = wslPage.wslIntegrations;
     const alpha = integrations.find(item => item.name === 'alpha');
