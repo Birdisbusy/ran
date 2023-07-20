@@ -21,6 +21,10 @@ factory_reset() {
     if [ "$BATS_TEST_NUMBER" -gt 1 ]; then
         capture_logs
     fi
+    ENGINE_CONFIG="${PATH_APP_HOME}/rd-engine.json"
+    if [[ -f "$ENGINE_CONFIG" && -z "$(cat "$ENGINE_CONFIG")" ]]; then
+        rm "$ENGINE_CONFIG"
+    fi
 
     if using_dev_mode; then
         if is_unix; then

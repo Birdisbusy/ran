@@ -3,7 +3,10 @@ import merge from 'lodash/merge';
 import semver from 'semver';
 
 import { BackendSettings } from '@pkg/backend/backend';
-import { ContainerEngine } from '@pkg/config/settings';
+import { LockedFieldError } from '@pkg/config/commandLineOptions';
+import { ContainerEngine, Settings } from '@pkg/config/settings';
+import * as settingsImpl from '@pkg/config/settingsImpl';
+import SettingsValidator from '@pkg/main/commandServer/settingsValidator';
 import Logging from '@pkg/utils/logging';
 import { showMessageBox } from '@pkg/window';
 
@@ -122,16 +125,35 @@ export default class BackendHelper {
     return engineName === ContainerEngine.MOBY && semver.gte(kubeVersion, '1.24.1') && semver.lte(kubeVersion, '1.24.3');
   }
 
+  static checkForLockedVersion(newVersion: semver.SemVer, cfg: BackendSettings, sv: SettingsValidator): semver.SemVer {
+    const [, errors] = sv.validateSettings(cfg as Settings, { kubernetes: { version: newVersion.raw } }, settingsImpl.getLockedSettings());
+
+    if (errors.length > 0) {
+      if (errors.some(err => err.match(/field '.*' is locked/))) {
+        throw new LockedFieldError(`Error in deployment profiles:\n${ errors.join('\n') }`);
+      } else {
+        throw new Error(`Validation errors for requested version ${ newVersion }: ${ errors.join('\n') }`);
+      }
+    }
+
+    return newVersion;
+  }
+
   /**
    * Validate the cfg.kubernetes.version string
    * If it's valid and available, use it.
    * Otherwise fall back to the first (recommended) available version.
    */
-  static async getDesiredVersion(currentConfigVersionString: string|undefined, availableVersions: semver.SemVer[], noModalDialogs: boolean, settingsWriter: (_: any) => void): Promise<semver.SemVer> {
+  static async getDesiredVersion(cfg: BackendSettings, availableVersions: semver.SemVer[], noModalDialogs: boolean, settingsWriter: (_: any) => void): Promise<semver.SemVer> {
+    const currentConfigVersionString = cfg?.kubernetes?.version;
     let storedVersion: semver.SemVer|null;
     let matchedVersion: semver.SemVer|undefined;
     const invalidK8sVersionMainMessage = `Requested kubernetes version '${ currentConfigVersionString }' is not a valid version.`;
+    const sv = new SettingsValidator();
+    const lockedSettings = settingsImpl.getLockedSettings();
+    const versionIsLocked = lockedSettings.kubernetes?.version ?? false;
 
+    sv.k8sVersions = availableVersions.map(v => v.version);
     if (currentConfigVersionString) {
       storedVersion = semver.parse(currentConfigVersionString);
       if (storedVersion) {
@@ -149,7 +171,9 @@ export default class BackendHelper {
           }
         });
         if (matchedVersion) {
-          return matchedVersion;
+          return this.checkForLockedVersion(matchedVersion, cfg, sv);
+        } else if (versionIsLocked) {
+          throw new LockedFieldError(`Locked kubernetes version ${ currentConfigVersionString } isn't available.`);
         }
       }
     }
@@ -162,9 +186,11 @@ export default class BackendHelper {
       }
       throw new Error('No kubernetes version available.');
     }
+    const versionToUse = this.checkForLockedVersion(availableVersions[0], cfg, sv);
+
     if (currentConfigVersionString) {
       const message = invalidK8sVersionMainMessage;
-      const detail = `Falling back to the most recent stable version of ${ availableVersions[0] }`;
+      const detail = `Falling back to the most recent stable version of ${ versionToUse }`;
 
       if (noModalDialogs) {
         console.log(`${ message } ${ detail }`);
@@ -181,8 +207,8 @@ export default class BackendHelper {
       }
     }
     // No (valid) stored version; save the selected one.
-    settingsWriter({ kubernetes: { version: availableVersions[0].version } });
+    settingsWriter({ kubernetes: { version: versionToUse.version } });
 
-    return availableVersions[0];
+    return versionToUse;
   }
 }

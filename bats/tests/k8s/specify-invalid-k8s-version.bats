@@ -20,6 +20,14 @@ load '../helpers/load'
     assert_file_contains "$PATH_LOGS/kube.log" "Requested kubernetes version 'moose' is not a valid version. Falling back to the most recent stable version of"
 }
 
+@test 'valid k8s version' {
+    factory_reset
+    sleep 10
+    start_kubernetes --kubernetes.version=1.25.11
+    wait_for_container_engine
+    wait_for_apiserver 1.25.11
+}
+
 # on macOS it still hangs without this
 @test 'shutdown' {
     if is_macos; then
