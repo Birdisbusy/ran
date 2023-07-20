@@ -22,7 +22,7 @@ factory_reset() {
         capture_logs
     fi
     ENGINE_CONFIG="${PATH_APP_HOME}/rd-engine.json"
-    if [[ -f "$ENGINE_CONFIG" && -z "$(cat "$ENGINE_CONFIG")" ]]; then
+    if [ -f "$ENGINE_CONFIG" ] && [ -z "$(cat "$ENGINE_CONFIG")" ]; then
         rm "$ENGINE_CONFIG"
     fi
 
